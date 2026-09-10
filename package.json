@@ -1,0 +1,7 @@
+{
+  "name": "cp0-kit",
+  "version": "0.1.0",
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": { "test": "node --test tests/*.test.js", "test:unit": "node --test tests/*.test.js" }
+}
