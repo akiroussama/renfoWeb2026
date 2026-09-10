@@ -50,7 +50,6 @@ export function evaluateScope(input = {}) {
     }
     return interdits.has(segs[segs.length - 1]);
   };
-  const sousEtudiants = (p) => p === "students" || p.startsWith("students/");
   files.forEach((rec, idx) => {
     if (
       !rec ||
@@ -93,7 +92,7 @@ export function evaluateScope(input = {}) {
         continue;
       }
       if (prefix && p.startsWith(prefix) && p.length > prefix.length) continue;
-      if (isOwner && !sousEtudiants(p)) continue;
+      if (isOwner) continue;
       violations.push(`fichier hors périmètre : ${p}`);
     }
   });
