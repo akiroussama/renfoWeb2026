@@ -1,14 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import loadPersona, { isValidLogin as ok } from "./lib/student-loader.js";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 const DEF = path.join(REPO, "students");
 const ROOT = process.env.CP0_STUDENTS_ROOT || DEF;
-const WORKER = path.join(HERE, "read-persona.js");
-const RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
-const ok = (s) => RE.test(s) && !s.includes("--");
 let tgt = null;
 for (const a of process.argv.slice(2)) {
   if (a.startsWith("--student=")) {
@@ -23,87 +20,33 @@ for (const a of process.argv.slice(2)) {
     process.exit(1);
   }
 }
-const ENV = (() => {
-  const K = [
-    "PATH",
-    "PATHEXT",
-    "SYSTEMROOT",
-    "SYSTEMDRIVE",
-    "WINDIR",
-    "COMSPEC",
-    "TEMP",
-    "TMP",
-    "TMPDIR",
-    "HOME",
-    "USER",
-    "LANG",
-    "LC_ALL",
-    "TZ",
-    "OS",
-  ];
-  const e = {};
-  for (const k of K) if (process.env[k] !== undefined) e[k] = process.env[k];
-  return e;
-})();
 function runWorker(login, dir, file) {
-  const flags = [
-    "--permission",
-    `--allow-fs-read=${HERE}`,
-    `--allow-fs-read=${path.join(REPO, "template")}`,
-    `--allow-fs-read=${path.join(REPO, "package.json")}`,
-    `--allow-fs-read=${dir}`,
-  ];
-  if (ROOT !== DEF)
-    flags.push(`--allow-fs-read=${path.join(ROOT, "package.json")}`);
-  const r = spawnSync(process.execPath, [...flags, WORKER, file], {
-    timeout: 3000,
-    maxBuffer: 1024 * 1024,
-    encoding: "utf8",
-    env: ENV,
-  });
-  if (r.error) {
-    console.error(`Échec ${login} : délai dépassé (${r.error.message})`);
-    return 1;
-  }
-  let j = null;
+  let res = null;
   try {
-    j = JSON.parse(r.stdout);
-  } catch {
-    console.error(`Échec ${login} : sortie illisible`);
+    res = loadPersona(login, dir, file);
+  } catch (e) {
+    console.error(
+      e && e.message ? e.message : `Échec ${login} : résultat illisible`,
+    );
     return 1;
   }
-  if (
-    !j ||
-    typeof j !== "object" ||
-    !Array.isArray(j.errors) ||
-    !j.errors.every(
-      (e) =>
-        e &&
-        typeof e === "object" &&
-        typeof e.field === "string" &&
-        typeof e.message === "string",
-    )
-  ) {
-    console.error(`Échec ${login} : résultat illisible`);
-    return 1;
-  }
-  if (r.status !== 0 || j.errors.length) {
+  if (!res || res.errors.length) {
     console.error(`Échec ${login} : persona invalide`);
-    for (const e of j.errors)
-      console.error(`- ${login} ${e.field} : ${e.message}`);
+    if (res && Array.isArray(res.errors))
+      for (const e of res.errors)
+        console.error(`- ${login} ${e.field} : ${e.message}`);
     return 1;
   }
   if (
-    !j.persona ||
-    typeof j.persona !== "object" ||
-    typeof j.persona.name !== "string" ||
-    typeof j.persona.avatar !== "string" ||
-    typeof j.persona.welcomeMessage !== "string"
+    !res.persona ||
+    typeof res.persona.name !== "string" ||
+    typeof res.persona.avatar !== "string" ||
+    typeof res.persona.welcomeMessage !== "string"
   ) {
     console.error(`Échec ${login} : résultat illisible`);
     return 1;
   }
-  console.log(`OK ${login} : ${j.persona.name} ${j.persona.avatar}`);
+  console.log(`OK ${login} : ${res.persona.name} ${res.persona.avatar}`);
   return 0;
 }
 function nofollow(p) {

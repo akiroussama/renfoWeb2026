@@ -1,0 +1,101 @@
+body {
+  margin: 0;
+  background: #f6f8fb;
+  color: #1e2a4a;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+  line-height: 1.6;
+}
+
+header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+}
+
+article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 6px rgba(30, 42, 74, 0.08);
+}
+
+article h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.login {
+  margin: 0 0 0.75rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.avatar {
+  font-size: 2.4rem;
+  margin: 0.5rem 0;
+}
+
+.welcome {
+  margin: 0.75rem 0;
+}
+
+.status {
+  display: inline-block;
+  color: #15803d;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+article a {
+  display: inline-block;
+  margin-top: 0.8rem;
+  color: #1d4ed8;
+}
+
+.empty {
+  background: #fff;
+  border: 1px dashed #94a3b8;
+  border-radius: 0.9rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+@media (max-width: 37.5rem) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+  main {
+    padding: 0.75rem;
+  }
+  article {
+    padding: 1.1rem;
+  }
+}
