@@ -3,5 +3,5 @@ export default {
   name: "",
   avatar: "",
   systemPrompt: "",
-  welcomeMessage: ""
+  welcomeMessage: "",
 };
