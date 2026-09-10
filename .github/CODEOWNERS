@@ -1,0 +1,8 @@
+# Maintainer owns core teaching kit paths.
+# Student folders under students/ stay open for peer review.
+/.github/ @akiroussama
+/tests/ @akiroussama
+/scripts/ @akiroussama
+/template/ @akiroussama
+/package.json @akiroussama
+/config/ @akiroussama

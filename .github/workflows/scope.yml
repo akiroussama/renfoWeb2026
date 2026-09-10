@@ -1,0 +1,93 @@
+# CP0 — politique de périmètre pure (sans exécution du code PR).
+# S'active seulement après fusion de sa version fiable sur main.
+name: CP0 Scope Policy
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions: {}
+concurrency:
+  group: cp0-scope-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  scope-policy:
+    name: Politique de périmètre CP0
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # Ne jamais basculer sur le head SHA/ref de la PR : base fiable seule.
+      - name: Checkout base fiable (main)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          repository: ${{ github.repository }}
+          persist-credentials: false
+      # N'utilise que GITHUB_TOKEN intégré, jamais de clés/secrets utilisateur.
+      - name: Évaluer le périmètre CP0
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const mod = await import(pathToFileURL(process.env.GITHUB_WORKSPACE + '/scripts/lib/scope.js'));
+            const evaluateScope = mod.evaluateScope;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.issue.number;
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            let headSha = null;
+            try {
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number });
+              headSha = pr.head.sha;
+              const author = pr.user.login;
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: headSha, state: 'pending', context: 'cp0-scope',
+                description: 'Vérification du périmètre CP0…', target_url: runUrl });
+              const files = [];
+              let page = 1;
+              while (true) {
+                const { data: batch } = await github.rest.pulls.listFiles(
+                  { owner, repo, pull_number, per_page: 100, page });
+                files.push(...batch);
+                if (batch.length < 100) break;
+                page += 1;
+              }
+              if (files.length !== pr.changed_files) {
+                throw new Error('Liste de fichiers incomplète : contrôle interrompu.');
+              }
+              const result = evaluateScope({ author, owner, files });
+              const { data: fresh } = await github.rest.pulls.get({ owner, repo, pull_number });
+              if (fresh.head.sha !== headSha) {
+                throw new Error(`PR mise à jour pendant le contrôle (${headSha} -> ${fresh.head.sha})`);
+              }
+              if (result.allowed) {
+                await github.rest.repos.createCommitStatus({
+                  owner, repo, sha: headSha, state: 'success', context: 'cp0-scope',
+                  description: 'Périmètre CP0 respecté', target_url: runUrl });
+                core.info(`Périmètre CP0 respecté pour ${author} (${files.length} fichier(s)).`);
+              } else {
+                const lines = (result.violations || []).map((v) => `- ${v}`);
+                core.info(`Périmètre CP0 refusé pour ${author} :`);
+                for (const line of lines) core.info(line);
+                await github.rest.repos.createCommitStatus({
+                  owner, repo, sha: headSha, state: 'failure', context: 'cp0-scope',
+                  description: 'Périmètre CP0 refusé : voir logs', target_url: runUrl });
+                core.setFailed(`Périmètre CP0 refusé :\n${lines.join('\n')}`);
+              }
+            } catch (error) {
+              core.info(`Erreur vérification périmètre CP0 : ${error.message}`);
+              try {
+                if (headSha) {
+                  await github.rest.repos.createCommitStatus({
+                    owner, repo, sha: headSha, state: 'error', context: 'cp0-scope',
+                    description: 'Erreur vérification périmètre CP0', target_url: runUrl });
+                }
+              } catch (_) {
+                core.info('Impossible de publier le statut erreur.');
+              }
+              core.setFailed(error.message);
+            }
