@@ -93,7 +93,9 @@ export function evaluateScope(input = {}) {
       }
       if (prefix && p.startsWith(prefix) && p.length > prefix.length) continue;
       if (isOwner) continue;
-      violations.push(`fichier hors périmètre : ${p}`);
+      violations.push(
+        `fichier hors périmètre : ${p} (attendu : students/${author}/)`,
+      );
     }
   });
   return { allowed: violations.length === 0, violations };

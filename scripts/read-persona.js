@@ -5,6 +5,20 @@ const f = process.argv[2];
 try {
   const m = await import(pathToFileURL(f).href);
   const d = m.default;
+  if (!d || typeof d !== "object" || Array.isArray(d)) {
+    console.log(
+      JSON.stringify({
+        errors: [
+          {
+            field: "persona",
+            message:
+              "persona.js doit exporter ta persona avec `export default { … }`",
+          },
+        ],
+      }),
+    );
+    process.exit(1);
+  }
   const tpl = T.default;
   const errs = validatePersona(d, tpl);
   const pub =

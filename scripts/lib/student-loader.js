@@ -36,7 +36,39 @@ function minEnv() {
   return e;
 }
 
+function syntaxDiagnostic(login, stderr) {
+  const lines = String(stderr || "").split(/\r?\n/);
+  let lineNo = null;
+  let src = "";
+  let msg = "";
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/:(\d+)(?::\d+)?\s*$/);
+    if (m && lineNo === null) {
+      lineNo = m[1];
+      if (lines[i + 1] !== undefined) src = lines[i + 1].trim();
+    }
+    const s = lines[i].match(/SyntaxError:\s*(.*)/);
+    if (s && !msg) msg = s[1].trim();
+  }
+  const rel = `students/${login}/persona.js`;
+  if (lineNo)
+    return `Échec ${login} : ${rel} ligne ${lineNo} : ${msg || "erreur de syntaxe"}\n${src}`;
+  return `Échec ${login} : ${rel} erreur de syntaxe${msg ? ` : ${msg}` : ""}`;
+}
+function checkSyntax(login, file) {
+  const c = spawnSync(process.execPath, ["--check", file], {
+    timeout: 3000,
+    maxBuffer: 1024 * 1024,
+    encoding: "utf8",
+    env: minEnv(),
+  });
+  if (c.error)
+    throw new Error(`Échec ${login} : délai dépassé (${c.error.message})`);
+  if (c.status === 0) return;
+  throw new Error(syntaxDiagnostic(login, c.stderr));
+}
 export default function loadPersona(login, dir, file) {
+  checkSyntax(login, file);
   const ROOT = process.env.CP0_STUDENTS_ROOT || DEF;
   const flags = [
     "--permission",
