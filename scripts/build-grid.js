@@ -3,6 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import loadPersona, { isValidLogin } from "./lib/student-loader.js";
 import { renderGrid, renderPlaceholder } from "./lib/grid.js";
+import {
+  buildCheckpointPlan,
+  readProgression,
+  resolveEffectiveCheckpoint,
+} from "./lib/checkpoints.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -97,9 +102,30 @@ for (const login of dirs) {
     bad = true;
     continue;
   }
+  let checkpoint = 0;
+  try {
+    const fileValue = await readProgression(path.dirname(ROOT), login);
+    if (fileValue !== null) buildCheckpointPlan(REPO, fileValue);
+    const target = fileValue === null ? 0 : fileValue;
+    const validated = Array.from({ length: target + 1 }, (_, level) => level);
+    checkpoint = await resolveEffectiveCheckpoint({
+      fileValue,
+      validated,
+      personaValid: true,
+    });
+  } catch (error) {
+    console.error(`Échec ${login} : ${error?.message || error}`);
+    bad = true;
+    continue;
+  }
+  const nextLevel = checkpoint + 1;
+  const nextSource = path.join(REPO, "checkpoints", `cp${nextLevel}`, "enonce.html");
+  const nextTarget = checkpoint === 0 || nofollow(nextSource)?.isFile() ? nextLevel : undefined;
   entries.push({
     login,
     persona: res.persona,
+    checkpoint,
+    nextTarget,
   });
 }
 
@@ -127,7 +153,18 @@ try {
 
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, "index.html"), htmlIndex, "utf8");
-fs.writeFileSync(path.join(OUT, "cp1.html"), htmlCp1, "utf8");
+const cp1Source = path.join(REPO, "checkpoints", "cp1", "enonce.html");
+if (nofollow(cp1Source)?.isFile()) fs.copyFileSync(cp1Source, path.join(OUT, "cp1.html"));
+else fs.writeFileSync(path.join(OUT, "cp1.html"), htmlCp1, "utf8");
+for (let level = 2; level <= 7; level += 1) {
+  const source = path.join(REPO, "checkpoints", `cp${level}`, "enonce.html");
+  const stat = nofollow(source);
+  if (stat?.isSymbolicLink()) {
+    console.error(`Échec : énoncé CP${level} lié symboliquement`);
+    process.exit(1);
+  }
+  if (stat?.isFile()) fs.copyFileSync(source, path.join(OUT, `cp${level}.html`));
+}
 fs.copyFileSync(
   path.join(REPO, "web", "styles.css"),
   path.join(OUT, "styles.css"),
