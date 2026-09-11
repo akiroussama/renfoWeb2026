@@ -17,4 +17,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "24"
-      - run: npm test
+      - name: Persona CP0
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.type == 'User' && github.event.pull_request.user.login != github.repository_owner
+        env:
+          CP0_STUDENT_LOGIN: ${{ github.event.pull_request.user.login }}
+        run: node scripts/test.js --student="$CP0_STUDENT_LOGIN"
+      - name: Tests du kit
+        run: npm run test:unit

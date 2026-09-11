@@ -8,7 +8,8 @@ ensureRuntime();
 const REPO = path.resolve(HERE, "..");
 const CLI = path.join(HERE, "test-personas.js");
 const args = process.argv.slice(2);
-if (args.length) {
+const isKitOnly = args.length === 1 && args[0] === "--kit-only";
+if (args.length && !isKitOnly) {
   const r = spawnSync(process.execPath, [CLI, ...args], {
     stdio: "inherit",
     cwd: REPO,
@@ -32,10 +33,11 @@ if (!files.length) {
 }
 let code = 0;
 {
-  const a = spawnSync(process.execPath, ["--test", ...files], {
+  const a = spawnSync(process.execPath, ["--test", "--test-reporter=spec", ...files], {
     stdio: "inherit",
     cwd: REPO,
   });
+  if (isKitOnly) process.exit(a.status ?? 1);
   if ((a.status ?? 1) !== 0) code = 1;
 }
 const b = spawnSync(process.execPath, [CLI], { stdio: "inherit", cwd: REPO });
