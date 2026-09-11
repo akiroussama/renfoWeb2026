@@ -67,18 +67,23 @@ describe("evaluateScope - portee", () => {
     for (const filename of [
       ".env",
       ".env.local",
-      "prep/notes.md",
-      "prompt_astra.md",
-      "synthese-preparation.md",
-      "CLAUDE.md",
-      "decisions-module.md",
-      "cp0-mise-en-piste.md",
+      ".env.production",
+      ".ENV.local",
+      "students/alice/.envrc",
+      "students/alice/.environment",
     ]) {
       for (const author of [ALICE, OWNER]) {
         const r = evaluateScope({ author, owner: OWNER, files: [f(filename)] });
         assert.equal(r.allowed, false);
       }
     }
+    const renamed = evaluateScope({
+      author: ALICE,
+      files: [
+        f("students/alice/persona.js", "renamed", "students/alice/.envrc"),
+      ],
+    });
+    assert.equal(renamed.allowed, false);
   });
   it("refuse traversee, antislash et chemin absolu factices", () => {
     for (const filename of [

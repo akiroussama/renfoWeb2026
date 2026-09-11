@@ -4,10 +4,3 @@
 **/.env.*
 node_modules/
 site/
-prep/
-.astra/
-prompt_astra.md
-synthese-preparation.md
-CLAUDE.md
-decisions-module.md
-cp0-mise-en-piste.md

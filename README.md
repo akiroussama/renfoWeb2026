@@ -83,6 +83,11 @@ Checklist :
 
 Relisez les pairs assignés et expliquez votre code quand on vous relit.
 
+Le fichier `config/participants.json` sert au choix des relecteurs. Sa forme est
+`{"participants":[{"login":"exemple","team":"groupe-a"}]}` ; le tableau est
+volontairement vide dans le dépôt de départ et seuls les logins réels du groupe
+doivent y être ajoutés par l'instructeur.
+
 - Un commentaire utile est exigé pour CHAQUE approbation ;
 - Répondez à tous les commentaires reçus ;
 - `Changes requested` bloque le merge ;
