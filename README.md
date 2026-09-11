@@ -51,9 +51,9 @@ npm test -- --student=votre-login
 
 Éditez `students/votre-login/persona.js` (gardez `export default`) :
 
-- `name` : 2 à 20 graphèmes (caractères perçus) ;
+- `name` : 2 à 20 caractères perçus ;
 - `avatar` : un seul emoji, y compris s'il est composé ;
-- `systemPrompt` : 80 graphèmes minimum, hors espaces aux extrémités ;
+- `systemPrompt` : 80 caractères minimum, hors espaces aux extrémités ;
 - `welcomeMessage` : doit contenir `name`.
 
 Le persona complété doit être différent du modèle vide.

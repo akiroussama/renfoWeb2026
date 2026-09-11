@@ -18,7 +18,7 @@ export function validatePersona(persona, templatePersona) {
     if (l < 2 || l > 20)
       errors.push({
         field: "name",
-        message: "Le nom doit contenir entre 2 et 20 graphèmes.",
+        message: "Le nom doit contenir entre 2 et 20 caractères.",
       });
   }
   if (typeof p.avatar !== "string" || p.avatar === "") {
@@ -47,7 +47,7 @@ export function validatePersona(persona, templatePersona) {
   } else if (count(p.systemPrompt.trim()) < 80) {
     errors.push({
       field: "systemPrompt",
-      message: "Le prompt système doit contenir au moins 80 graphèmes.",
+      message: "Le prompt système doit contenir au moins 80 caractères.",
     });
   }
   if (typeof p.welcomeMessage !== "string" || p.welcomeMessage.trim() === "") {
