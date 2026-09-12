@@ -2,7 +2,7 @@
 
 Kit natif : HTML, CSS, JS en modules, Node 24, zéro dépendance.
 
-Objectif : créer votre persona, ouvrir une PR, faire relire, merger, voir la grille Pages.
+Objectif : créer la persona de l'assistant correspondant au thème attribué, ouvrir une PR, faire relire, merger, voir la grille Pages.
 
 `votre-login` = votre login GitHub exact. Remplacez-le partout. Exemple : `marie-dupont`.
 
@@ -49,7 +49,7 @@ Sans étudiant, `npm test` est vert. Après copie, le modèle vide fait échouer
 npm test -- --student=votre-login
 ```
 
-Éditez `students/votre-login/persona.js` (gardez `export default`) :
+Éditez `students/votre-login/persona.js` à partir du thème qui vous a été attribué (gardez `export default`) :
 
 - `name` : 2 à 20 caractères perçus ;
 - `avatar` : un seul emoji, y compris s'il est composé ;
@@ -83,10 +83,11 @@ Checklist :
 
 Relisez les pairs assignés et expliquez votre code quand on vous relit.
 
-Le fichier `config/participants.json` sert au choix des relecteurs. Sa forme est
-`{"participants":[{"login":"exemple","team":"groupe-a"}]}` ; le tableau est
-volontairement vide dans le dépôt de départ et seuls les logins réels du groupe
-doivent y être ajoutés par l'instructeur.
+Le fichier `config/participants.json` sert au choix des relecteurs. Après le draft
+du matin, l'instructeur y reporte le login et l'identifiant du thème, par exemple
+`{"participants":[{"login":"exemple","theme":"A1"}]}`. Le champ `team` sera ajouté
+lors de la constitution des équipes. Le tableau reste vide dans le dépôt de départ
+et seuls les logins réels du groupe doivent y être ajoutés par l'instructeur.
 
 - Un commentaire utile est exigé pour CHAQUE approbation ;
 - Répondez à tous les commentaires reçus ;
