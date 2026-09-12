@@ -1,4 +1,6 @@
-// Grille CP0 — rendu HTML sûr, sans dépendance.
+import { renderProgressGrid } from "./checkpoints.js";
+
+// Grille des checkpoints — rendu HTML sûr, sans dépendance.
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -28,14 +30,22 @@ export function renderGrid(entries) {
       const name = escapeHtml(entry?.persona?.name ?? "");
       const avatar = escapeHtml(entry?.persona?.avatar ?? "");
       const welcome = escapeHtml(entry?.persona?.welcomeMessage ?? "");
+      const checkpoint = Number.isInteger(entry?.checkpoint) ? entry.checkpoint : 0;
+      const validatedLevels = Array.from({ length: checkpoint + 1 }, (_, level) => level);
+      const nextTarget = entry?.nextTarget === undefined && checkpoint === 0 ? 1 : entry?.nextTarget;
+      const progression = renderProgressGrid({
+        login: entry?.login ?? "",
+        effectiveCheckpoint: checkpoint,
+        validatedLevels,
+        nextTarget,
+      });
       return [
         `<article data-login="${login}">`,
         `<h2>${name}</h2>`,
         `<p class="login">${login}</p>`,
         `<p class="avatar" aria-hidden="true">${avatar}</p>`,
         `<p class="welcome">${welcome}</p>`,
-        `<p class="status">CP0 validé</p>`,
-        `<a href="cp1.html">Voir CP1</a>`,
+        progression,
         `</article>`,
       ].join("\n");
     });

@@ -11,16 +11,19 @@ jobs:
       contents: read
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24"
-      - name: Persona CP0
+          package-manager-cache: false
+      # Accepte une branche étudiante du dépôt ou d'un fork ; le runner valide son nom.
+      - name: Persona CP0 et checkpoints cumulatifs
         if: github.event_name == 'pull_request' && github.event.pull_request.user.type == 'User' && github.event.pull_request.user.login != github.repository_owner
         env:
           CP0_STUDENT_LOGIN: ${{ github.event.pull_request.user.login }}
-        run: node scripts/test.js --student="$CP0_STUDENT_LOGIN"
+          CP_BRANCH: ${{ github.head_ref }}
+        run: node scripts/run-checkpoint.js --branch="$CP_BRANCH" --author="$CP0_STUDENT_LOGIN"
       - name: Tests du kit
         run: npm run test:unit

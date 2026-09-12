@@ -96,3 +96,16 @@ test("systemPrompt sentinel is never rendered", () => {
   assert.equal(countArticles(html), 1);
   assert.ok(html.includes("Carol"));
 });
+
+test("affiche le checkpoint atteint et seulement la prochaine cible publiée", () => {
+  const html = renderGrid([{ ...alice, checkpoint: 2, nextTarget: 3 }]);
+  assert.ok(html.includes("CP2 validé"));
+  assert.match(html, /href="cp3\.html"/);
+  assert.ok(!html.includes("CP3 validé"));
+});
+
+test("sans cible publiée, aucun lien de déblocage n'est inventé", () => {
+  const html = renderGrid([{ ...alice, checkpoint: 2 }]);
+  assert.ok(html.includes("CP2 validé"));
+  assert.ok(!html.includes("cp3.html"));
+});
