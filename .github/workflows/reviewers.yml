@@ -93,7 +93,7 @@ jobs:
               }
             }
 
-            // Conserve les relecteurs deja demandes (choix humain).
+            // Conserve les relecteurs déjà demandés (choix humain).
             const existingRequested = (pr.requested_reviewers || []).map((u) => u.login).filter(Boolean);
 
             // Conserve les auteurs de reviews precedentes eligibles (roster ou owner).
@@ -131,8 +131,8 @@ jobs:
 
             const needed = TARGET - coveredLower.size;
             if (needed <= 0) {
-              core.info(`Deja ${coveredLower.size}/2 relecteurs couverts : aucune nouvelle demande.`);
-              await core.summary.addRaw(`### Relecteurs\n\nDeja ${coveredLower.size}/2 relecteurs couverts, aucune action.`).write();
+              core.info(`Déjà ${coveredLower.size}/2 relecteurs couverts : aucune nouvelle demande.`);
+              await core.summary.addRaw(`### Relecteurs\n\nDéjà ${coveredLower.size}/2 relecteurs couverts, aucune action.`).write();
               return;
             }
 
@@ -163,9 +163,9 @@ jobs:
             const shortage = needed - newReviewers.length;
 
             if (newReviewers.length === 0) {
-              core.warning(`Aucun nouveau relecteur disponible. Il manque ${needed}/2 relecteur(s) : ajout manuel requis, sans reduire l'exigence de 2 approbations.`);
-              core.info(`Auteur : ${author} | Selection : (aucune) | Manquant : ${needed}`);
-              await core.summary.addRaw(`### Relecteurs\n\nAuteur : ${author}\n\nSelection : (aucune)\n\nIl manque ${needed}/2 relecteur(s). Ajout manuel requis.`).write();
+              core.warning(`Aucun nouveau relecteur disponible. Il manque ${needed}/2 relecteur(s) : ajout manuel requis, sans réduire l'exigence de 2 approbations.`);
+              core.info(`Auteur : ${author} | Sélection : (aucune) | Manquant : ${needed}`);
+              await core.summary.addRaw(`### Relecteurs\n\nAuteur : ${author}\n\nSélection : (aucune)\n\nIl manque ${needed}/2 relecteur(s). Ajout manuel requis.`).write();
               return;
             }
 
@@ -179,13 +179,13 @@ jobs:
               });
             } catch (error) {
               if (error.status === 422) {
-                core.setFailed(`Demande de relecteurs rejetee (422) pour [${newReviewers.join(', ')}] : ${error.message}`);
+                core.setFailed(`Demande de relecteurs rejetée (422) pour [${newReviewers.join(', ')}] : ${error.message}`);
                 return;
               }
               throw error;
             }
 
-            core.info(`Auteur : ${author} | Relecteurs demandes : ${newReviewers.join(', ')} | Manquant : ${shortage > 0 ? shortage : 0} (selecteur : ${missing || 0})`);
+            core.info(`Auteur : ${author} | Relecteurs demandés : ${newReviewers.join(', ')} | Manquant : ${shortage > 0 ? shortage : 0} (sélecteur : ${missing || 0})`);
             if (shortage > 0) {
               core.warning(`Il manque encore ${shortage} relecteur(s) pour atteindre 2. Exigence de 2 approbations maintenue, ajout manuel requis.`);
             }

@@ -17,13 +17,6 @@ export function evaluateScope(input = {}) {
     return { allowed: false, violations };
   }
   const prefix = isLogin(author) ? `students/${author}/` : null;
-  const interdits = new Set([
-    "prompt_astra.md",
-    "synthese-preparation.md",
-    "claude.md",
-    "decisions-module.md",
-    "cp0-mise-en-piste.md",
-  ]);
   const estMalforme = (p) => {
     if (typeof p !== "string" || p.length === 0) return true;
     if (p[0] === "/") return true;
@@ -45,10 +38,9 @@ export function evaluateScope(input = {}) {
   const estPrive = (p) => {
     const segs = p.split("/").map((s) => s.toLowerCase());
     for (const s of segs) {
-      if (s === ".env" || s.startsWith(".env.")) return true;
-      if (s === "prep") return true;
+      if (s.startsWith(".env")) return true;
     }
-    return interdits.has(segs[segs.length - 1]);
+    return false;
   };
   files.forEach((rec, idx) => {
     if (
