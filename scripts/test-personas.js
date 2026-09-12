@@ -2,7 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import loadPersona, { isValidLogin as ok } from "./lib/student-loader.js";
+import { ensureRuntime } from "./lib/runtime.js";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+ensureRuntime();
 const REPO = path.resolve(HERE, "..");
 const DEF = path.join(REPO, "students");
 const ROOT = process.env.CP0_STUDENTS_ROOT || DEF;
@@ -60,7 +62,9 @@ function one(login) {
   const dir = path.join(ROOT, login);
   const st = nofollow(dir);
   if (!st) {
-    console.error(`Échec ${login} : dossier étudiant introuvable`);
+    console.error(
+      `Échec ${login} : dossier étudiant introuvable (attendu : students/${login}/)`,
+    );
     return 1;
   }
   if (st.isSymbolicLink()) {
