@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import loadPersona, { isValidLogin as ok } from "./lib/student-loader.js";
 import { ensureRuntime } from "./lib/runtime.js";
+import * as T from "../template/persona.js";
+import { spawnSync } from "node:child_process";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 ensureRuntime();
 const REPO = path.resolve(HERE, "..");
@@ -25,7 +27,7 @@ for (const a of process.argv.slice(2)) {
 function runWorker(login, dir, file) {
   let res = null;
   try {
-    res = loadPersona(login, dir, file);
+    res = loadPersona(login, dir, file, { forAcceptance: true });
   } catch (e) {
     console.error(
       e && e.message ? e.message : `Échec ${login} : résultat illisible`,
@@ -39,17 +41,27 @@ function runWorker(login, dir, file) {
         console.error(`- ${login} ${e.field} : ${e.message}`);
     return 1;
   }
-  if (
-    !res.persona ||
-    typeof res.persona.name !== "string" ||
-    typeof res.persona.avatar !== "string" ||
-    typeof res.persona.welcomeMessage !== "string"
-  ) {
+  if (!res.persona || typeof res.persona !== "object") {
     console.error(`Échec ${login} : résultat illisible`);
     return 1;
   }
-  console.log(`OK ${login} : ${res.persona.name} ${res.persona.avatar}`);
-  return 0;
+  const spec = path.join(REPO, "tests", "cp0-acceptation.spec.js");
+  const run = spawnSync(
+    process.execPath,
+    ["--test", "--test-reporter=spec", "--test-isolation=none", spec],
+    {
+      input: JSON.stringify({ persona: res.persona, template: T.default }),
+      encoding: "utf8",
+      stdio: ["pipe", "inherit", "inherit"],
+      timeout: 10000,
+      maxBuffer: 1024 * 1024,
+    },
+  );
+  if (run.error) {
+    console.error(`Échec ${login} : test d’acceptation interrompu`);
+    return 1;
+  }
+  return run.status === 0 ? 0 : 1;
 }
 function nofollow(p) {
   try {

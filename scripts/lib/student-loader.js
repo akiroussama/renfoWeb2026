@@ -67,7 +67,8 @@ function checkSyntax(login, file) {
   if (c.status === 0) return;
   throw new Error(syntaxDiagnostic(login, c.stderr));
 }
-export default function loadPersona(login, dir, file) {
+export default function loadPersona(login, dir, file, options) {
+  const forAcceptance = Boolean(options && options.forAcceptance);
   checkSyntax(login, file);
   const ROOT = process.env.CP0_STUDENTS_ROOT || DEF;
   const flags = [
@@ -79,7 +80,9 @@ export default function loadPersona(login, dir, file) {
   ];
   if (ROOT !== DEF)
     flags.push(`--allow-fs-read=${path.join(ROOT, "package.json")}`);
-  const r = spawnSync(process.execPath, [...flags, WORKER, file], {
+  const args = [...flags, WORKER, file];
+  if (forAcceptance) args.push("--acceptance-data");
+  const r = spawnSync(process.execPath, args, {
     timeout: 3000,
     maxBuffer: 1024 * 1024,
     encoding: "utf8",
@@ -109,6 +112,11 @@ export default function loadPersona(login, dir, file) {
   }
   if (r.status !== 0 || j.errors.length)
     return { errors: j.errors, persona: null };
+  if (forAcceptance) {
+    if (!j.persona || typeof j.persona !== "object" || Array.isArray(j.persona))
+      throw new Error(`Échec ${login} : résultat illisible`);
+    return { errors: [], persona: j.persona };
+  }
   if (
     !j.persona ||
     typeof j.persona !== "object" ||
